@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, HTTPException,Response
 from pydantic import BaseModel, field_validator,Field
+from typing import Optional
 
 class TaskCreate(BaseModel):
     title: str
@@ -42,12 +43,17 @@ tasks = [
 
 
 
-@app.get("/",summary="API information")
+
+@app.get("/")
 def root():
     return {
         "name": "Task API",
         "version": "1.0",
-        "endpoints": ["/tasks"]
+        "endpoints": [
+            "/tasks",
+            "/stats",
+            "/health"
+        ]
     }
 
 
@@ -58,10 +64,32 @@ def health():
     }
 
 
-@app.get("/tasks",summary="Get all tasks")
-def get_tasks():
-    return tasks
+# @app.get("/tasks",summary="Get all tasks")
+# def get_tasks():
+#     return tasks
 
+
+
+@app.get("/tasks")
+def get_tasks(
+    done: Optional[bool] = None,
+    search: Optional[str] = None
+):
+    result = tasks
+
+    # Filter by done status
+    if done is not None:
+        result = [task for task in result if task["done"] == done]
+
+    # Search by title
+    if search:
+        result = [
+            task
+            for task in result
+            if search.lower() in task["title"].lower()
+        ]
+
+    return result
 
 @app.get("/tasks/{task_id}",summary="Get a specific task")
 
@@ -121,3 +149,17 @@ def delete_task(task_id: int):
         status_code=404,
         detail=f"Task {task_id} not found"
     )
+
+
+@app.get("/stats")
+def get_stats():
+
+    total = len(tasks)
+    done = sum(task["done"] for task in tasks)
+    open_tasks = total - done
+
+    return {
+        "total": total,
+        "done": done,
+        "open": open_tasks
+    }
