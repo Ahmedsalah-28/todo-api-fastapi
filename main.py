@@ -38,7 +38,7 @@ if count == 0:
     )
 
     connection.commit()
-    
+
 
 class TaskCreate(BaseModel):
     title: str
@@ -70,23 +70,23 @@ async def validation_exception_handler(
         }
     )
 
-tasks = [
-    {
-        "id": 1,
-        "title": "Learn FastAPI",
-        "done": False
-    },
-    {
-        "id": 2,
-        "title": "Build CRUD API",
-        "done": False
-    },
-    {
-        "id": 3,
-        "title": "Submit Assignment",
-        "done": True
-    }
-]
+# tasks = [
+#     {
+#         "id": 1,
+#         "title": "Learn FastAPI",
+#         "done": False
+#     },
+#     {
+#         "id": 2,
+#         "title": "Build CRUD API",
+#         "done": False
+#     },
+#     {
+#         "id": 3,
+#         "title": "Submit Assignment",
+#         "done": True
+#     }
+# ]
 
 
 
@@ -123,9 +123,20 @@ def get_tasks(
     done: Optional[bool] = None,
     search: Optional[str] = None
 ):
-    result = tasks
 
-    # Filter by done status
+    cursor.execute("SELECT * FROM tasks")
+
+    rows = cursor.fetchall()
+
+    result = []
+
+    for row in rows:
+        result.append({
+            "id": row[0],
+            "title": row[1],
+            "done": bool(row[2])
+        })
+# Filter by done status
     if done is not None:
         result = [task for task in result if task["done"] == done]
 
@@ -139,18 +150,23 @@ def get_tasks(
 
     return result
 
+
 @app.get("/tasks/{task_id}",summary="Get a specific task")
-
 def get_task(task_id: int):
-
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    row = cursor.fetchone()
+    if row:
+        return {
+            "id": row[0],
+            "title": row[1],
+            "done": bool(row[2])
+        }
 
     raise HTTPException(
         status_code=404,
         detail=f"Task {task_id} not found"
     )
+
 
 @app.post("/tasks", status_code=201,summary="Create a new task")
 def create_task(task: TaskCreate):
