@@ -170,14 +170,17 @@ def get_task(task_id: int):
 
 @app.post("/tasks", status_code=201,summary="Create a new task")
 def create_task(task: TaskCreate):
-    new_id = max(task["id"] for task in tasks) + 1 if tasks else 1
-    new_task = {
+
+    cursor.execute("INSERT INTO tasks (title, done) VALUES (?, ?)", (task.title, False))
+    connection.commit()
+
+    new_id = cursor.lastrowid
+
+    return {
         "id": new_id,
         "title": task.title,
         "done": False
     }
-    tasks.append(new_task)
-    return new_task
 
 
 
