@@ -187,35 +187,35 @@ def create_task(task: TaskCreate):
 @app.put("/tasks/{task_id}",summary="Update a specific task")
 def update_task(task_id: int, updated_task: TaskUpdate):
 
-    for task in tasks:
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    row = cursor.fetchone()
 
-        if task["id"] == task_id:
-
-            task["title"] = updated_task.title
-            task["done"] = updated_task.done
-
-            return task
-
-    raise HTTPException(
-        status_code=404,
-        detail=f"Task {task_id} not found"
-    )
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found"
+        )
+    cursor.execute("UPDATE tasks SET title = ?, done = ? WHERE id = ?", (updated_task.title, updated_task.done, task_id))
+    connection.commit()
+    return {
+        "id": task_id,
+        "title": updated_task.title,
+        "done": updated_task.done
+    }
 
 @app.delete("/tasks/{task_id}", status_code=204,summary="Delete a specific task")
 def delete_task(task_id: int):
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    row = cursor.fetchone()
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Task {task_id} not found"
+        )
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    connection.commit()
 
-    for index, task in enumerate(tasks):
-
-        if task["id"] == task_id:
-
-            tasks.pop(index)
-
-            return Response(status_code=204)
-
-    raise HTTPException(
-        status_code=404,
-        detail=f"Task {task_id} not found"
-    )
+    return Response(status_code=204)
 
 
 @app.get("/stats")
