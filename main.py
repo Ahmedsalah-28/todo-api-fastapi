@@ -3,6 +3,42 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, field_validator,Field
 from typing import Optional
+import sqlite3
+
+connection = sqlite3.connect(
+    "tasks.db",
+    check_same_thread=False
+)
+
+cursor = connection.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY,
+    title TEXT NOT NULL,
+    done BOOLEAN NOT NULL
+)
+""")
+
+connection.commit()
+
+cursor.execute("SELECT COUNT(*) FROM tasks")
+
+count = cursor.fetchone()[0]
+if count == 0:
+    cursor.executemany(
+        """
+        INSERT INTO tasks (title, done)
+        VALUES (?, ?)
+        """,
+        [
+            ("Learn FastAPI", False),
+            ("Study SQL", False),
+            ("Build REST API", True)
+        ]
+    )
+
+    connection.commit()
+    
 
 class TaskCreate(BaseModel):
     title: str
