@@ -1,6 +1,6 @@
-# Task API
+# Task API - SQLite Edition
 
-A simple CRUD API built with FastAPI.
+A simple Task Management REST API built with FastAPI and SQLite.
 
 ## Features
 
@@ -9,7 +9,22 @@ A simple CRUD API built with FastAPI.
 - Read Task by ID
 - Update Task
 - Delete Task
-- Swagger UI Documentation
+- Search Tasks
+- Filter by Status
+- Task Statistics
+- SQLite Persistent Storage
+- Swagger Documentation
+
+---
+
+## Technologies
+
+- FastAPI
+- SQLite
+- Pydantic
+- Uvicorn
+
+---
 
 ## Installation
 
@@ -23,33 +38,50 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
-Open:
+Open Swagger:
 
 ```
 http://127.0.0.1:8000/docs
 ```
 
+---
+
 ## Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | / | API information |
-| GET | /health | Health check |
+| GET | / | Root |
+| GET | /health | Health Check |
 | GET | /tasks | Get all tasks |
-| GET | /tasks/{id} | Get task by ID |
+| GET | /tasks/{id} | Get task |
 | POST | /tasks | Create task |
 | PUT | /tasks/{id} | Update task |
 | DELETE | /tasks/{id} | Delete task |
+| GET | /stats | Statistics |
 
-## Example
+---
 
-```bash
-curl -X POST http://127.0.0.1:8000/tasks \
--H "Content-Type: application/json" \
--d "{\"title\":\"Buy milk\"}"
+## Query Parameters
+
+```
+GET /tasks?done=true
+GET /tasks?done=false
+GET /tasks?search=SQL
+GET /tasks?done=true&search=FastAPI
 ```
 
-## Swagger UI
+---
 
-![alt text](image.png)
+## Persistence
 
+The application now stores data in **SQLite (tasks.db)** instead of an in-memory list.
+
+Tasks remain available after restarting the application.
+
+---
+
+## Screenshots
+
+![alt text](image-1.png)
+
+![alt text](image-2.png)
